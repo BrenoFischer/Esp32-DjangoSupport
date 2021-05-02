@@ -3,8 +3,13 @@
 #define LED 2
 
 String string_test;
+int seq;
+int teste;
 DynamicJsonDocument json_receive(1024);
-StaticJsonDocument<200> json_send;
+StaticJsonDocument<256> json_send;
+
+void sendJson();
+
 
 void setup() {
   Serial.begin(115200);
@@ -13,6 +18,7 @@ void setup() {
   while(!Serial) {}
 }
 
+
 void loop() {
   while(Serial.available())  
   {
@@ -20,25 +26,42 @@ void loop() {
     deserializeJson(json_receive, string_test);
     if (json_receive["type"] == 1){
       digitalWrite(LED,LOW);
-      json_send["id"] = "2";
-      json_send["type"] = 3;
-      json_send["count"] = 2;
-      json_send["lat"] = 53.2839936;
-      json_send["lng"] = -9.302038;
-      json_send["high"] = 10.2;
-      serializeJson(json_send, Serial);
-      Serial.print("\n");
     }
     else {
       digitalWrite(LED,HIGH);
-      json_send["id"] = "2";
-      json_send["type"] = 4;
-      json_send["count"] = 2;
-      json_send["lat"] = 53.2839936;
-      json_send["lng"] = -9.302038;
-      json_send["high"] = 10.2;
-      serializeJson(json_send, Serial);
-      Serial.print("\n");
     }
   }
+  if(teste == 500000) {
+    JsonObject root = json_send.to<JsonObject>(); 
+        
+    root["id"] = "1";
+    root["type"] = 1;
+    root["seq"] = seq++;
+    JsonObject payload = root.createNestedObject("payload");
+    payload["lat"] = 56.75608;
+    payload["lng"] = -9.302038;
+    payload["high"] = 10;
+    
+    serializeJson(root, Serial);
+    Serial.print("\n");
+    /*sendJson();*/
+    teste = 0; 
+  }
+  teste++;
+}
+
+
+void sendJson() {
+  json_send["serial"] = "connected";
+  
+  JsonObject payload = json_send.createNestedObject("payload");
+  payload["id"] = "1";
+  payload["type"] = 1;
+  payload["count"] = 50000;
+  payload["lat"] = 56.75608;
+  payload["lng"] = -9.302038;
+  payload["high"] = 10;
+  
+  serializeJson(json_send, Serial);
+  Serial.print("\n");
 }
